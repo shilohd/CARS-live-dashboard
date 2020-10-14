@@ -48,11 +48,11 @@ data$Q1..Which.department.do.you.primarily.work.in. <-
 
 deps <- data$Q1..Which.department.do.you.primarily.work.in.
 freqs <- data.frame(table(deps))
-colnames(freqs) <- c("Department", "Frequency")
+colnames(freqs) <- c("Organisation", "Frequency")
 freqs <- freqs[freqs$Frequency > 4, ]
 rownames(freqs) <- NULL
 n_responses <- length(deps)
-freqs$Department <- factor(freqs$Department, levels = freqs$Department)
+freqs$Organisation <- factor(freqs$Organisation, levels = freqs$Organisation)
 
 output <- carsurvey::freqOutput(freqs, n = n_responses)
 
@@ -73,10 +73,25 @@ row
 
 ### Chart
 ```{r chart}
-plot_labs <- as.character(freqs$Department)
+plot_labs <- as.character(freqs$Organisation)
 wrap_width <- max(nchar(plot_labs)) * 0.6
 plot_labs <- stringr::str_wrap(plot_labs, wrap_width)
 plot_labs <- stringr::str_replace(plot_labs, "\n", "<br>")
+
+f <- list(
+  family = "Arial",
+  size = 18,
+  color = "#7f7f7f"
+)
+
+x <- list(
+  title = "Count",
+  titlefont = f
+)
+y <- list(
+  title = "Organisation",
+  titlefont = f
+)
 
 plotly::plot_ly(
   x = rev(freqs$Frequency),
@@ -84,7 +99,8 @@ plotly::plot_ly(
   type = "bar",
   orientation = "h"
 ) %>% 
-  config(displayModeBar = F)
+  layout(xaxis = x, yaxis = y) %>% 
+    config(displayModeBar = F)
 ```
 
 ### Table
