@@ -1,0 +1,94 @@
+---
+title: "Coding in Analysis and Research Survey - live dashboard"
+output_dir: docs
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: scroll
+    css: style.css
+---
+
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(carsurvey)
+library(plotly)
+library(magrittr)
+library(dplyr)
+```
+
+```{r outputs, include = FALSE}
+data <- read.csv("../../CARS-data/latest_data.csv")
+data[3:nrow(data),] # Filter out empty rows
+
+recode_vals <- list(
+  "Department of Health and Social Care (excl. agencies)" = "DHSC",               
+  "Ministry of Justice (excl. agencies)" = "MoJ",                                    
+  "Office for National Statistics" = "ONS",                                        
+  "Government Digital Service" = "GDS",                                     
+  "Department for Education" = "DfE",                                                
+  "Department for Transport (excl. agencies)"= "DfT",                       
+  "Northern Ireland Statistics and Research Agency" = "NISRA",                       
+  "Department for Business, Energy and Industrial Strategy (excl. agencies)" = "BEIS",
+  "Ministry of Housing, Communities and Local Government (excl. agencies)" = "Ministry of Housing, Communities and Local Government",
+  "Department for Work and Pensions" = "DWP",                               
+  "HM Revenue and Customs" = "HMRC",
+  "Public Health England" = "PHE",                                                   
+  "Office for Statistics Regulation" = "OSR",                                        
+  "Ministry of Defence" = "MoD",                                                     
+  "United Kingdom Statistics Authority" = "UKSA",                                     
+  "Department for Digital, Culture, Media and Sport" = "DCMS",
+  "Department for Environment, Food and Rural Affairs (excl. agencies)" = "DEFRA"
+)
+
+data$Q1..Which.department.do.you.primarily.work.in. <- 
+  dplyr::recode(
+    data$Q1..Which.department.do.you.primarily.work.in., !!!recode_vals
+  ) 
+
+deps <- data$Q1..Which.department.do.you.primarily.work.in.
+freqs <- data.frame(table(deps))
+colnames(freqs) <- c("Department", "Frequency")
+freqs <- freqs[freqs$Frequency > 4, ]
+rownames(freqs) <- NULL
+n_responses <- length(deps)
+freqs$Department <- factor(freqs$Department, levels = freqs$Department)
+
+output <- carsurvey::freqOutput(freqs, n = n_responses)
+
+```
+
+row 
+---------------------------------------------------------------------
+
+### Can you see your department below?
+
+So far we've had `r n_responses` responses to the survey. We hope to get at least 20 responses each from as many organisations as possible. This will allow us to produce summary statistics for each of those organisations.
+
+If an organisation is not listed below, that means we have fewer than 5 responses from that organisation.
+
+
+row 
+---------------------------------------------------------------------
+
+### Chart
+```{r chart}
+plot_labs <- as.character(freqs$Department)
+wrap_width <- max(nchar(plot_labs)) * 0.6
+plot_labs <- stringr::str_wrap(plot_labs, wrap_width)
+plot_labs <- stringr::str_replace(plot_labs, "\n", "<br>")
+
+plotly::plot_ly(
+  x = rev(freqs$Frequency),
+  y = rev(plot_labs),
+  type = "bar",
+  orientation = "h"
+) %>% 
+  config(displayModeBar = F)
+```
+
+### Table
+
+```{r table}
+carsurvey::output_table(output)
+```
