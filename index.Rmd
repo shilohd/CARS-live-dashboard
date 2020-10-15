@@ -18,6 +18,9 @@ library(dplyr)
 ```
 
 ```{r outputs, include = FALSE}
+date <- stringr::str_split(format(Sys.time()), " ", simplify=T)[1]
+time <- stringr::str_split(format(Sys.time()), " ", simplify=T)[2]
+
 data <- read.csv("../../CARS-data/latest_data.csv")
 data[3:nrow(data),] # Filter out empty rows
 
@@ -30,7 +33,6 @@ recode_vals <- list(
   "Department for Transport (excl. agencies)"= "DfT",                       
   "Northern Ireland Statistics and Research Agency" = "NISRA",                       
   "Department for Business, Energy and Industrial Strategy (excl. agencies)" = "BEIS",
-  "Ministry of Housing, Communities and Local Government (excl. agencies)" = "Ministry of Housing, Communities and Local Government",
   "Department for Work and Pensions" = "DWP",                               
   "HM Revenue and Customs" = "HMRC",
   "Public Health England" = "PHE",                                                   
@@ -38,8 +40,22 @@ recode_vals <- list(
   "Ministry of Defence" = "MoD",                                                     
   "United Kingdom Statistics Authority" = "UKSA",                                     
   "Department for Digital, Culture, Media and Sport" = "DCMS",
-  "Department for Environment, Food and Rural Affairs (excl. agencies)" = "DEFRA"
-)
+  "Department for Environment, Food and Rural Affairs (excl. agencies)" = "DEFRA",
+  "Cabinet Office (excl. agencies)" = "CO",
+  "Department for International Trade" = "DIT",                 
+  "Department for International Development" = "DfID",
+  "Welsh Government" = "WG",
+  "Ministry of Housing, Communities and Local Government (excl. agencies)" = "MHCLG",
+  "Government Actuary's Department" = "GAD",
+  "HM Treasury" = "HMT",
+  "National Records of Scotland" = "NRS",
+  "Centre for Environment, Fisheries and Aquaculture Science" = "CEFAS",
+  "Health and Safety Executive" = "HSE",
+  "Her Majesty's Courts and Tribunals Service" = "HM Courts and Tribunals Service",
+  "Office of Rail and Road" = "ORR",
+  "Defence Science and Technology Laboratory" = "DSTL",
+  "Home Office (excl. agencies)" = "HO"
+  )
 
 data$Q1..Which.department.do.you.primarily.work.in. <- 
   dplyr::recode(
@@ -55,6 +71,7 @@ n_responses <- length(deps)
 freqs$Organisation <- factor(freqs$Organisation, levels = freqs$Organisation)
 
 output <- carsurvey::freqOutput(freqs, n = n_responses)
+
 
 ```
 
@@ -73,10 +90,10 @@ row
 
 ### Chart
 ```{r chart}
+order <- order(freqs$Frequency)
 plot_labs <- as.character(freqs$Organisation)
-wrap_width <- max(nchar(plot_labs)) * 0.6
-plot_labs <- stringr::str_wrap(plot_labs, wrap_width)
-plot_labs <- stringr::str_replace(plot_labs, "\n", "<br>")
+plot_labs <- c(" ", plot_labs[order], "  ")
+frequencies <- c(0, freqs$Frequency[order], 0)
 
 f <- list(
   family = "Arial",
@@ -90,17 +107,21 @@ x <- list(
 )
 y <- list(
   title = "Organisation",
-  titlefont = f
+  titlefont = f,
+  categoryorder = "array",
+  categoryarray = plot_labs
 )
 
 plotly::plot_ly(
-  x = rev(freqs$Frequency),
-  y = rev(plot_labs),
+  x = frequencies,
+  y = plot_labs,
   type = "bar",
   orientation = "h"
 ) %>% 
-  layout(xaxis = x, yaxis = y) %>% 
-    config(displayModeBar = F)
+  add_segments(x = 20, xend = 20, y = " ", yend = "  ") %>%
+    layout(xaxis = x, yaxis = y) %>% 
+      layout(showlegend = F) %>%
+        config(displayModeBar = F)
 ```
 
 ### Table
@@ -108,3 +129,11 @@ plotly::plot_ly(
 ```{r table}
 carsurvey::output_table(output)
 ```
+
+row 
+---------------------------------------------------------------------
+
+### Last updated:
+
+Date: `r date`
+Time: `r time`
