@@ -22,7 +22,7 @@ date <- stringr::str_split(format(Sys.time()), " ", simplify=T)[1]
 time <- stringr::str_split(format(Sys.time()), " ", simplify=T)[2]
 
 data <- read.csv("../../CARS-data/latest_data.csv")
-data[3:nrow(data),] # Filter out empty rows
+data <- data[3:nrow(data),] # Filter out empty rows
 
 recode_vals <- list(
   "Department of Health and Social Care (excl. agencies)" = "DHSC",               
