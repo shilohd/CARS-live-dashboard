@@ -16,5 +16,9 @@ a {
 
 .navbar {
   background-color: black;
-  font-size: 16px;
+  font-size: 18px;
+}
+
+.chart-title {
+  font-size: 16px; 
 }
